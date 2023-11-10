@@ -10,11 +10,12 @@
 /// 2013, 2023
 
 // Student authors (fill in below):
-// NMec:  Name:
+// NMec:  Name
+// 113780 João Varela
+// 114246 Carolina Prata
+// 114614 Martim Santos 
 // 
-// 
-// 
-// Date:
+// Date: 
 //
 
 #include "image8bit.h"
