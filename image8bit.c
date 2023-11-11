@@ -11,9 +11,9 @@
 
 // Student authors (fill in below):
 // NMec:  Name
-// 113780 João Varela
-// 114246 Carolina Prata
-// 114614 Martim Santos 
+// *113780 João Varela
+// *114246 Carolina Prata
+// *114614 Martim Santos 
 // 
 // Date: 
 //
