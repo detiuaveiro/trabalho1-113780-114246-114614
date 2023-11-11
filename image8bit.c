@@ -384,7 +384,8 @@ void ImageNegative(Image img) { ///
   assert (img != NULL);
   
   int i;
-  for (i = 0; i < img->width*img->height; i++) {
+  int size = img->width*img->height;
+  for (i = 0; i < size; i++) {
     img->pixel[i] = PixMax - img->pixel[i];
   }
 
@@ -397,7 +398,8 @@ void ImageThreshold(Image img, uint8 thr) { ///
   assert (img != NULL);
 
   int i;
-  for (i = 0; i < img->width*img->height; i++) {
+  float size = img->width*img->height;
+  for (i = 0; i < size; i++) {
     img->pixel[i] = (img->pixel[i] < thr) ? 0 : PixMax;
   }
 
@@ -410,11 +412,19 @@ void ImageThreshold(Image img, uint8 thr) { ///
 void ImageBrighten(Image img, double factor) { ///
   assert (img != NULL);
   assert (factor >= 0.0);
-  
+
   int i;
-  for (i = 0; i < img->width*img->height; i++) {
-    img->pixel[i] = (uint8)(img->pixel[i] * factor);
+  int size = img->width*img->height;
+  for (i = 0; i < size; i++) {
+    double new_pixel = img->pixel[i] * factor;
+    
+    if (new_pixel > PixMax) {
+      img->pixel[i] = PixMax;
+    } else {
+      img->pixel[i] = (int)(new_pixel + 0.5);
+    }
   }
+
 }
 
 
@@ -444,11 +454,12 @@ Image ImageRotate(Image img) { ///
   
   Image img2 = NULL;
   int success = check( (img2 = ImageCreate(img->height, img->width, img->maxval)) != NULL, "Allocation failed" );
-
+  int h = img->height;
+  int w = img->width;
   if (success) {
     int x, y;
-    for (y = 0; y < img->height; y++) {
-      for (x = 0; x < img->width; x++) {
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
         ImageSetPixel(img2, y, img->width - x - 1, ImageGetPixel(img, x, y));
       }
     }
@@ -478,9 +489,11 @@ Image ImageMirror(Image img) { ///
 
   if (success) {
     int x, y;
-    for (y = 0; y < img->height; y++) {
-      for (x = 0; x < img->width; x++) {
-        ImageSetPixel(img2, img->width - x - 1, y, ImageGetPixel(img, x, y));
+    int h = img->height;
+    int w = img->width;
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        ImageSetPixel(img2, w - x - 1, y, ImageGetPixel(img, x, y));
       }
     }
   } else {
@@ -541,8 +554,10 @@ void ImagePaste(Image img1, int x, int y, Image img2) { ///
   assert (ImageValidRect(img1, x, y, img2->width, img2->height));
   
   int i, j;
-  for (j = 0; j < img2->height; j++) {
-    for (i = 0; i < img2->width; i++) {
+  int h = img2->height;
+  int w = img2->width;
+  for (j = 0; j < h; j++) {
+    for (i = 0; i < w; i++) {
       ImageSetPixel(img1, x + i, y + j, ImageGetPixel(img2, i, j));
     }
   }
@@ -560,9 +575,11 @@ void ImageBlend(Image img1, int x, int y, Image img2, double alpha) { ///
   assert (ImageValidRect(img1, x, y, img2->width, img2->height));
   
   int i, j;
-  for (j = 0; j < img2->height; j++) {
-    for (i = 0; i < img2->width; i++) {
-      uint8 level = (uint8)(ImageGetPixel(img1, x + i, y + j) * (1 - alpha) + ImageGetPixel(img2, i, j) * alpha);
+  int h = img2->height;
+  int w = img2->width;
+  for (j = 0; j < h; j++) {
+    for (i = 0; i < w; i++) {
+      int level = (int)((ImageGetPixel(img1, x + i, y + j) * (1 - alpha) + ImageGetPixel(img2, i, j) * alpha)+0.5);
       ImageSetPixel(img1, x + i, y + j, level);
     }
   }
@@ -577,8 +594,10 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   assert (ImageValidPos(img1, x, y));
   
   int i, j;
-  for (j = 0; j < img2->height; j++) {
-    for (i = 0; i < img2->width; i++) {
+  int h = img2->height;
+  int w = img2->width;
+  for (j = 0; j < h; j++) {
+    for (i = 0; i < w; i++) {
       if (ImageGetPixel(img1, x + i, y + j) != ImageGetPixel(img2, i, j)) {
         return 0;
       }
@@ -596,8 +615,13 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img2 != NULL);
   
   int x, y;
-  for (y = 0; y < img1->height - img2->height; y++) {
-    for (x = 0; x < img1->width - img2->width; x++) {
+  
+  int h1 = img2->height;
+  int w1 = img2->width;
+  int h2 = img2->height;
+  int w2 = img2->width;
+  for (y = 0; y < h1 - h2; y++) {
+    for (x = 0; x < w1 - w2; x++) {
       if (ImageMatchSubImage(img1, x, y, img2)) {
         *px = x;
         *py = y;
@@ -617,7 +641,37 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /// Each pixel is substituted by the mean of the pixels in the rectangle
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
-void ImageBlur(Image img, int dx, int dy) { ///
-    // Insert your code here!
+void ImageBlur(Image img, int dx, int dy) {
+  assert(img != NULL);
+  assert(dx >= 0);
+  assert(dy >= 0);
+
+  Image img1 = ImageCreate(img->width, img->height, img->maxval);
+  int x, y;
+  int h = img->height;
+  int w = img->width;
+  for (y = 0; y < h; y++) {
+    for (x = 0; x < w; x++) {
+      double sum = 0.0;
+      double count = 0.0;
+      int i, j;
+      for (j = y - dy; j <= y + dy; j++) {
+        for (i = x - dx; i <= x + dx; i++) {
+          if (ImageValidPos(img, i, j)) {
+            sum += (ImageGetPixel(img, i, j));
+            count++;
+          }
+        }
+      }
+      ImageSetPixel(img1, x, y, (int)(sum / count + 0.5));
+    }
+  }
+  for (y = 0; y < h; y++) {
+    for (x = 0; x < w; x++) {
+      ImageSetPixel(img, x, y, ImageGetPixel(img1, x, y));
+    }
+  }
+  free(img1);
 }
+
 
