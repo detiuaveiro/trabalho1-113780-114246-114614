@@ -454,14 +454,15 @@ Image ImageRotate(Image img) { ///
   assert (img != NULL);
   
   Image img2 = NULL;
-  int success = check( (img2 = ImageCreate(img->height, img->width, img->maxval)) != NULL, "Allocation failed" );
   int h = img->height;
   int w = img->width;
+  int success = check( (img2 = ImageCreate(h, w, img->maxval)) != NULL, "Allocation failed" );
+
   if (success) {
     int x, y;
     for (y = 0; y < h; y++) {
       for (x = 0; x < w; x++) {
-        ImageSetPixel(img2, y, img->width - x - 1, ImageGetPixel(img, x, y));
+        ImageSetPixel(img2, y, w-x-1, ImageGetPixel(img, x, y));
       }
     }
   } else {
@@ -474,6 +475,7 @@ Image ImageRotate(Image img) { ///
   return img2;
 
 }
+
 
 /// Mirror an image = flip left-right.
 /// Returns a mirrored version of the image.
