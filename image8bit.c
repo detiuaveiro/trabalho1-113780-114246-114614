@@ -650,10 +650,12 @@ void ImageBlur(Image img, int dx, int dy) {
   int x, y;
   int h = img->height;
   int w = img->width;
+  double sum = 0.0;
+  double count = 0.0;
   for (y = 0; y < h; y++) {
     for (x = 0; x < w; x++) {
-      double sum = 0.0;
-      double count = 0.0;
+      sum = 0.0;
+      count = 0.0;
       int i, j;
       for (j = y - dy; j <= y + dy; j++) {
         for (i = x - dx; i <= x + dx; i++) {
