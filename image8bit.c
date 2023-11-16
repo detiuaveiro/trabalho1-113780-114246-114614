@@ -190,6 +190,7 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
     errsave = errno;
     ImageDestroy(&img);
     errno = errsave;
+    return NULL;
   } 
   return img;
 }
