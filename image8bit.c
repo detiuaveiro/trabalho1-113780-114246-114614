@@ -639,7 +639,6 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 }
 
 /// Filtering
-
 /// Blur an image by a applying a (2dx+1)x(2dy+1) mean filter.
 /// Each pixel is substituted by the mean of the pixels in the rectangle
 /// [x-dx, x+dx]x[y-dy, y+dy].
@@ -653,22 +652,20 @@ void ImageBlur(Image img, int dx, int dy) {
     int w = img->width;
     int x, y;
 
-    // Alocação dinâmica da matriz de soma cumulativa em um bloco contínuo
-    uint64_t *sumMatrix = (uint64_t *)malloc(h * w * sizeof(uint64_t));
-    if (sumMatrix == NULL) {
-        // Falha na alocação de memória
-        return;
+    // Criando a matriz de soma cumulativa
+    double **sumMatrix = (double **)malloc(h * sizeof(double *));
+    for (y = 0; y < h; y++) {
+        sumMatrix[y] = (double *)malloc(w * sizeof(double));
     }
 
-    // Preenchendo a matriz de soma cumulativa usando o algoritmo integral de imagem
+    // Preenchendo a matriz de soma cumulativa
     for (y = 0; y < h; y++) {
         for (x = 0; x < w; x++) {
-            uint8_t pixelVal = ImageGetPixel(img, x, y);
-            uint64_t prevRow = (y > 0) ? sumMatrix[(y - 1) * w + x] : 0;
-            uint64_t prevCol = (x > 0) ? sumMatrix[y * w + (x - 1)] : 0;
-            uint64_t prevDiag = (x > 0 && y > 0) ? sumMatrix[(y - 1) * w + (x - 1)] : 0;
-
-            sumMatrix[y * w + x] = pixelVal + prevRow + prevCol - prevDiag;
+            double pixelVal = ImageGetPixel(img, x, y);
+            sumMatrix[y][x] = pixelVal +
+                              (x > 0 ? sumMatrix[y][x-1] : 0) +
+                              (y > 0 ? sumMatrix[y-1][x] : 0) -
+                              (x > 0 && y > 0 ? sumMatrix[y-1][x-1] : 0);
         }
     }
 
@@ -677,19 +674,22 @@ void ImageBlur(Image img, int dx, int dy) {
         for (x = 0; x < w; x++) {
             int x1 = (x - dx > 0) ? x - dx : 0;
             int y1 = (y - dy > 0) ? y - dy : 0;
-            int x2 = (x + dx < w - 1) ? x + dx : w - 1;
-            int y2 = (y + dy < h - 1) ? y + dy : h - 1;
+            int x2 = (x + dx < w) ? x + dx : w - 1;
+            int y2 = (y + dy < h) ? y + dy : h - 1;
 
-            uint64_t area = (x2 - x1 + 1) * (y2 - y1 + 1);
-            uint64_t sum = sumMatrix[y2 * w + x2] -
-                           (x1 > 0 ? sumMatrix[y2 * w + x1 - 1] : 0) -
-                           (y1 > 0 ? sumMatrix[(y1 - 1) * w + x2] : 0) +
-                           (x1 > 0 && y1 > 0 ? sumMatrix[(y1 - 1) * w + x1 - 1] : 0);
+            double area = (x2 - x1 + 1) * (y2 - y1 + 1);
+            double sum = sumMatrix[y2][x2] -
+                         (x1 > 0 ? sumMatrix[y2][x1-1] : 0) -
+                         (y1 > 0 ? sumMatrix[y1-1][x2] : 0) +
+                         (x1 > 0 && y1 > 0 ? sumMatrix[y1-1][x1-1] : 0);
 
-            ImageSetPixel(img, x, y, (uint8_t)(sum / area + 0.5));
+            ImageSetPixel(img, x, y, (int)(sum / area + 0.5));
         }
     }
 
     // Liberando a memória alocada para a matriz de soma cumulativa
+    for (y = 0; y < h; y++) {
+        free(sumMatrix[y]);
+    }
     free(sumMatrix);
 }
