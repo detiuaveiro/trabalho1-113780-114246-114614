@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "instrumentation.h"
 
 // The data structure
@@ -637,7 +638,6 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 
 }
 
-
 /// Filtering
 
 /// Blur an image by a applying a (2dx+1)x(2dy+1) mean filter.
@@ -645,38 +645,51 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
 void ImageBlur(Image img, int dx, int dy) {
-  assert(img != NULL);
-  assert(dx >= 0);
-  assert(dy >= 0);
+    assert(img != NULL);
+    assert(dx >= 0);
+    assert(dy >= 0);
 
-  Image img1 = ImageCreate(img->width, img->height, img->maxval);
-  int x, y;
-  int h = img->height;
-  int w = img->width;
-  double sum = 0.0;
-  double count = 0.0;
-  for (y = 0; y < h; y++) {
-    for (x = 0; x < w; x++) {
-      sum = 0.0;
-      count = 0.0;
-      int i, j;
-      for (j = y - dy; j <= y + dy; j++) {
-        for (i = x - dx; i <= x + dx; i++) {
-          if (ImageValidPos(img, i, j)) {
-            sum += (ImageGetPixel(img, i, j));
-            count++;
-          }
+    int h = img->height;
+    int w = img->width;
+    int x, y;
+
+    // Alocação dinâmica da matriz de soma cumulativa em um bloco contínuo
+    uint64_t *sumMatrix = (uint64_t *)malloc(h * w * sizeof(uint64_t));
+    if (sumMatrix == NULL) {
+        // Falha na alocação de memória
+        return;
+    }
+
+    // Preenchendo a matriz de soma cumulativa usando o algoritmo integral de imagem
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            uint8_t pixelVal = ImageGetPixel(img, x, y);
+            uint64_t prevRow = (y > 0) ? sumMatrix[(y - 1) * w + x] : 0;
+            uint64_t prevCol = (x > 0) ? sumMatrix[y * w + (x - 1)] : 0;
+            uint64_t prevDiag = (x > 0 && y > 0) ? sumMatrix[(y - 1) * w + (x - 1)] : 0;
+
+            sumMatrix[y * w + x] = pixelVal + prevRow + prevCol - prevDiag;
         }
-      }
-      ImageSetPixel(img1, x, y, (int)(sum / count + 0.5));
     }
-  }
-  for (y = 0; y < h; y++) {
-    for (x = 0; x < w; x++) {
-      ImageSetPixel(img, x, y, ImageGetPixel(img1, x, y));
+
+    // Aplicando o desfoque usando a matriz de soma cumulativa
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            int x1 = (x - dx > 0) ? x - dx : 0;
+            int y1 = (y - dy > 0) ? y - dy : 0;
+            int x2 = (x + dx < w - 1) ? x + dx : w - 1;
+            int y2 = (y + dy < h - 1) ? y + dy : h - 1;
+
+            uint64_t area = (x2 - x1 + 1) * (y2 - y1 + 1);
+            uint64_t sum = sumMatrix[y2 * w + x2] -
+                           (x1 > 0 ? sumMatrix[y2 * w + x1 - 1] : 0) -
+                           (y1 > 0 ? sumMatrix[(y1 - 1) * w + x2] : 0) +
+                           (x1 > 0 && y1 > 0 ? sumMatrix[(y1 - 1) * w + x1 - 1] : 0);
+
+            ImageSetPixel(img, x, y, (uint8_t)(sum / area + 0.5));
+        }
     }
-  }
-  free(img1);
+
+    // Liberando a memória alocada para a matriz de soma cumulativa
+    free(sumMatrix);
 }
-
-
