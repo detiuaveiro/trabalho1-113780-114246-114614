@@ -32,27 +32,20 @@ int main(int argc, char* argv[]) {
   if (img1 == NULL) {
     error(2, errno, "Loading %s: %s", argv[1], ImageErrMsg());
   }
-  InstrPrint(); // to print instrumentation
 
   // Try changing the behaviour of the program by commenting/uncommenting
   // the appropriate lines.
 
   //img2 = ImageCrop(img1, ImageWidth(img1)/4, ImageHeight(img1)/4, ImageWidth(img1)/2, ImageHeight(img1)/2);
-  Image img2 = ImageRotate(img1);
-  if (img2 == NULL) {
-    error(2, errno, "Rotating img2: %s", ImageErrMsg());
-  }
 
+  ImageBlur(img1, 18,18);
   //ImageNegative(img2);
   //ImageThreshold(img2, 100);
-  ImageBrighten(img2, 1.3);
+    InstrPrint(); // to print instrumentation
 
-  if (ImageSave(img2, argv[2]) == 0) {
-    error(2, errno, "%s: %s", argv[2], ImageErrMsg());
-  }
+
 
   ImageDestroy(&img1);
-  ImageDestroy(&img2);
   return 0;
 }
 

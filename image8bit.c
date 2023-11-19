@@ -145,15 +145,17 @@ static int check(int condition, const char* failmsg) {
 
 /// Init Image library.  (Call once!)
 /// Currently, simply calibrate instrumentation and set names of counters.
-void ImageInit(void) { ///
-  InstrCalibrate();
-  InstrName[0] = "pixmem";  // InstrCount[0] will count pixel array acesses
-  // Name other counters here...
-  
+void ImageInit(void) {
+    InstrCalibrate();  // Calibrar a instrumentação
+    InstrName[0] = "pixmem";  // Contador para acessos ao array de pixels
+    InstrName[1] = "additions";  // Contador para operações de adição
+    InstrName[2] = "comparisons";  // Contador para operações de comparação
+    // Adicione mais nomes de contadores conforme necessário...
 }
 
 // Macros to simplify accessing instrumentation counters:
 #define PIXMEM InstrCount[0]
+#define additions InstrCount[1]
 // Add more macros here...
 
 // TIP: Search for PIXMEM or InstrCount to see where it is incremented!
@@ -615,6 +617,7 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
 /// If a match is found, returns 1 and matching position is set in vars (*px, *py).
 /// If no match is found, returns 0 and (*px, *py) are left untouched.
 int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
+  InstrReset(); 
   assert (img1 != NULL);
   assert (img2 != NULL);
   
@@ -627,6 +630,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   for (y = 0; y < h1 - h2; y++) {
     for (x = 0; x < w1 - w2; x++) {
       if (ImageMatchSubImage(img1, x, y, img2)) {
+        InstrCount[0] += 1;
         *px = x;
         *py = y;
         return 1;
@@ -635,6 +639,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
     }
   }
   return 0;
+  InstrPrint(); 
 
 }
 
@@ -644,6 +649,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
 void ImageBlur(Image img, int dx, int dy) {
+    InstrReset();  
     assert(img != NULL);
     assert(dx >= 0);
     assert(dy >= 0);
@@ -655,12 +661,14 @@ void ImageBlur(Image img, int dx, int dy) {
     // Criando a matriz de soma cumulativa
     double **sumMatrix = (double **)malloc(h * sizeof(double *));
     for (y = 0; y < h; y++) {
+        additions += 1;
         sumMatrix[y] = (double *)malloc(w * sizeof(double));
     }
 
     // Preenchendo a matriz de soma cumulativa
     for (y = 0; y < h; y++) {
         for (x = 0; x < w; x++) {
+            additions += 1;
             double pixelVal = ImageGetPixel(img, x, y);
             sumMatrix[y][x] = pixelVal +
                               (x > 0 ? sumMatrix[y][x-1] : 0) +
@@ -682,14 +690,16 @@ void ImageBlur(Image img, int dx, int dy) {
                          (x1 > 0 ? sumMatrix[y2][x1-1] : 0) -
                          (y1 > 0 ? sumMatrix[y1-1][x2] : 0) +
                          (x1 > 0 && y1 > 0 ? sumMatrix[y1-1][x1-1] : 0);
-
+                         additions += 1;
             ImageSetPixel(img, x, y, (int)(sum / area + 0.5));
         }
     }
 
     // Liberando a memória alocada para a matriz de soma cumulativa
     for (y = 0; y < h; y++) {
+        additions += 1;
         free(sumMatrix[y]);
     }
     free(sumMatrix);
+    InstrPrint();
 }
