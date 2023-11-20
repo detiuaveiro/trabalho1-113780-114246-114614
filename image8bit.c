@@ -453,7 +453,7 @@ void ImageBrighten(Image img, double factor) { ///
 /// On success, a new image is returned.
 /// (The caller is responsible for destroying the returned image!)
 /// On failure, returns NULL and errno/errCause are set accordingly.
-Image ImageRotate(Image img) { ///
+Image ImageRotate(Image img) { ///S
   assert (img != NULL);
   
   Image img2 = NULL;
@@ -617,7 +617,7 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
 /// If a match is found, returns 1 and matching position is set in vars (*px, *py).
 /// If no match is found, returns 0 and (*px, *py) are left untouched.
 int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
-  InstrReset(); 
+  InstrReset();
   assert (img1 != NULL);
   assert (img2 != NULL);
   
@@ -658,48 +658,43 @@ void ImageBlur(Image img, int dx, int dy) {
     int w = img->width;
     int x, y;
 
-    // Criando a matriz de soma cumulativa
-    double **sumMatrix = (double **)malloc(h * sizeof(double *));
-    for (y = 0; y < h; y++) {
-        additions += 1;
-        sumMatrix[y] = (double *)malloc(w * sizeof(double));
-    }
+    
+    double *sumMatrix = (double *)malloc(h * w * sizeof(double));
 
-    // Preenchendo a matriz de soma cumulativa
+    
     for (y = 0; y < h; y++) {
         for (x = 0; x < w; x++) {
             additions += 1;
+            int index = y * w + x;
             double pixelVal = ImageGetPixel(img, x, y);
-            sumMatrix[y][x] = pixelVal +
-                              (x > 0 ? sumMatrix[y][x-1] : 0) +
-                              (y > 0 ? sumMatrix[y-1][x] : 0) -
-                              (x > 0 && y > 0 ? sumMatrix[y-1][x-1] : 0);
+            sumMatrix[index] = pixelVal +
+                               (x > 0 ? sumMatrix[index-1] : 0) +
+                               (y > 0 ? sumMatrix[index-w] : 0) -
+                               (x > 0 && y > 0 ? sumMatrix[index-w-1] : 0);
         }
     }
 
-    // Aplicando o desfoque usando a matriz de soma cumulativa
     for (y = 0; y < h; y++) {
-        for (x = 0; x < w; x++) {
-            int x1 = (x - dx > 0) ? x - dx : 0;
-            int y1 = (y - dy > 0) ? y - dy : 0;
-            int x2 = (x + dx < w) ? x + dx : w - 1;
-            int y2 = (y + dy < h) ? y + dy : h - 1;
+      for (x = 0; x < w; x++) {
+          int x1 = (x - dx > 0) ? x - dx : 0;
+          int y1 = (y - dy > 0) ? y - dy : 0;
+          int x2 = (x + dx < w) ? x + dx : w - 1;
+          int y2 = (y + dy < h) ? y + dy : h - 1;
 
-            double area = (x2 - x1 + 1) * (y2 - y1 + 1);
-            double sum = sumMatrix[y2][x2] -
-                         (x1 > 0 ? sumMatrix[y2][x1-1] : 0) -
-                         (y1 > 0 ? sumMatrix[y1-1][x2] : 0) +
-                         (x1 > 0 && y1 > 0 ? sumMatrix[y1-1][x1-1] : 0);
-                         additions += 1;
-            ImageSetPixel(img, x, y, (int)(sum / area + 0.5));
-        }
-    }
+          double area = (x2 - x1 + 1) * (y2 - y1 + 1);
 
-    // Liberando a memória alocada para a matriz de soma cumulativa
-    for (y = 0; y < h; y++) {
-        additions += 1;
-        free(sumMatrix[y]);
-    }
+          
+          double sum = sumMatrix[y2 * w + x2] -
+                      (x1 > 0 ? sumMatrix[y2 * w + (x1 - 1)] : 0) -
+                      (y1 > 0 ? sumMatrix[(y1 - 1) * w + x2] : 0) +
+                      (x1 > 0 && y1 > 0 ? sumMatrix[(y1 - 1) * w + (x1 - 1)] : 0);
+            additions += 1;
+          ImageSetPixel(img, x, y, (int)(sum / area + 0.5));
+      }
+  }
+
+
+    
     free(sumMatrix);
-    InstrPrint();
+    
 }
