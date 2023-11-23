@@ -693,10 +693,6 @@ void ImageBlur(Image img, int dx, int dy) {
       }
   }
 
-
-    
     free(sumMatrix);
     
 }
-
-// o meu goat 
