@@ -659,12 +659,12 @@ void ImageBlur(Image img, int dx, int dy) {
     int x, y;
 
     
-    double *sumMatrix = (double *)malloc(h * w * sizeof(double));
+    double sumMatrix[h*w];
 
     
     for (y = 0; y < h; y++) {
         for (x = 0; x < w; x++) {
-            additions += 1;
+            ADDITIONS += 1;
             int index = y * w + x;
             double pixelVal = ImageGetPixel(img, x, y);
             sumMatrix[index] = pixelVal +
@@ -688,7 +688,7 @@ void ImageBlur(Image img, int dx, int dy) {
                       (x1 > 0 ? sumMatrix[y2 * w + (x1 - 1)] : 0) -
                       (y1 > 0 ? sumMatrix[(y1 - 1) * w + x2] : 0) +
                       (x1 > 0 && y1 > 0 ? sumMatrix[(y1 - 1) * w + (x1 - 1)] : 0);
-            additions += 1;
+            ADDITIONS += 1;
           ImageSetPixel(img, x, y, (int)(sum / area + 0.5));
       }
   }
