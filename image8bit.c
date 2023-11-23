@@ -658,22 +658,24 @@ void ImageBlur(Image img, int dx, int dy) {
     int w = img->width;
     int x, y;
 
+    int index  = 0;
     
-    double sumMatrix[h*w];
-
+    double sumMatrix[h*w*sizeof(double)];
+    //double *sumMatrix = (double *)malloc(h * w * sizeof(double));
     
     for (y = 0; y < h; y++) {
         for (x = 0; x < w; x++) {
             ADDITIONS += 1;
-            int index = y * w + x;
+            index = y * w + x;
             double pixelVal = ImageGetPixel(img, x, y);
             sumMatrix[index] = pixelVal +
                                (x > 0 ? sumMatrix[index-1] : 0) +
                                (y > 0 ? sumMatrix[index-w] : 0) -
                                (x > 0 && y > 0 ? sumMatrix[index-w-1] : 0);
         }
+        
     }
-
+     printf("index: %d\n", index); 
     for (y = 0; y < h; y++) {
       for (x = 0; x < w; x++) {
           int x1 = (x - dx > 0) ? x - dx : 0;
@@ -692,7 +694,6 @@ void ImageBlur(Image img, int dx, int dy) {
           ImageSetPixel(img, x, y, (int)(sum / area + 0.5));
       }
   }
-
-    free(sumMatrix);
-    
+ //free(sumMatrix);
+  InstrPrint();
 }
