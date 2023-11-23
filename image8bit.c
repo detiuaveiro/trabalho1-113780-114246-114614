@@ -660,8 +660,7 @@ void ImageBlur(Image img, int dx, int dy) {
 
     int index  = 0;
     
-    double sumMatrix[h*w*sizeof(double)];
-    //double *sumMatrix = (double *)malloc(h * w * sizeof(double));
+    double *sumMatrix = (double *)malloc(h * w * sizeof(double));
     
     for (y = 0; y < h; y++) {
         for (x = 0; x < w; x++) {
