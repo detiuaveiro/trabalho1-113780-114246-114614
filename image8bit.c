@@ -195,6 +195,13 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
     errno = errsave;
     return NULL;
   } 
+
+  FILE *fptr;
+  fptr = fopen("n_pixeis.txt", "a+");
+  //mete no ficheiro o numero de pixeis
+  fprintf(fptr,"%d\n",width*height);
+  fclose(fptr);
+
   return img;
 }
 
@@ -674,7 +681,7 @@ void ImageBlur(Image img, int dx, int dy) {
         }
         
     }
-     printf("index: %d\n", index); 
+    printf("index: %d\n", index); 
     for (y = 0; y < h; y++) {
       for (x = 0; x < w; x++) {
           int x1 = (x - dx > 0) ? x - dx : 0;
