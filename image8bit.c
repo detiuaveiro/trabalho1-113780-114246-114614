@@ -630,8 +630,8 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   
   int x, y;
   
-  int h1 = img2->height;
-  int w1 = img2->width;
+  int h1 = img1->height;
+  int w1 = img1->width;
   int h2 = img2->height;
   int w2 = img2->width;
   for (y = 0; y < h1 - h2; y++) {
