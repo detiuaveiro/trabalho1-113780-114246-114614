@@ -156,6 +156,7 @@ void ImageInit(void) {
 // Macros to simplify accessing instrumentation counters:
 #define PIXMEM InstrCount[0]
 #define ADDITIONS InstrCount[1]
+#define COMPARISONS InstrCount[2]
 // Add more macros here...
 
 // TIP: Search for PIXMEM or InstrCount to see where it is incremented!
@@ -627,16 +628,17 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   InstrReset();
   assert (img1 != NULL);
   assert (img2 != NULL);
-  
+
   int x, y;
   
   int h1 = img1->height;
   int w1 = img1->width;
   int h2 = img2->height;
   int w2 = img2->width;
-  for (y = 0; y < h1 - h2; y++) {
-    for (x = 0; x < w1 - w2; x++) {
-      ADDITIONS += 1;
+
+  for (y = 0; y < h1-h2; y++) {
+    for (x = 0; x < w1-w2; x++) {
+      COMPARISONS += 1;
       if (ImageMatchSubImage(img1, x, y, img2)) {
         InstrCount[0] += 1;
         *px = x;
@@ -682,7 +684,6 @@ void ImageBlur(Image img, int dx, int dy) {
         }
         
     }
-    printf("index: %d\n", index); 
     for (y = 0; y < h; y++) {
       for (x = 0; x < w; x++) {
           int x1 = (x - dx > 0) ? x - dx : 0;
@@ -704,3 +705,7 @@ void ImageBlur(Image img, int dx, int dy) {
  //free(sumMatrix);
   InstrPrint();
 }
+
+
+
+
