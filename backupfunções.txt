@@ -5,6 +5,7 @@
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
 void ImageBlur(Image img, int dx, int dy) {
+  InstrReset();
   assert(img != NULL);
   assert(dx >= 0);
   assert(dy >= 0);
@@ -17,11 +18,13 @@ void ImageBlur(Image img, int dx, int dy) {
   double count = 0.0;
   for (y = 0; y < h; y++) {
     for (x = 0; x < w; x++) {
+      ADDITIONS += 1;
       sum = 0.0;
       count = 0.0;
       int i, j;
       for (j = y - dy; j <= y + dy; j++) {
         for (i = x - dx; i <= x + dx; i++) {
+          ADDITIONS += 1;
           if (ImageValidPos(img, i, j)) {
             sum += (ImageGetPixel(img, i, j));
             count++;
@@ -37,6 +40,7 @@ void ImageBlur(Image img, int dx, int dy) {
     }
   }
   free(img1);
+  InstrPrint();
 }
 
 isto é a função blur a 17 novembro as 16:00
