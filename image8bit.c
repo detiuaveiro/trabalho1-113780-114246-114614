@@ -197,11 +197,6 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
     return NULL;
   } 
 
-  FILE *fptr;
-  fptr = fopen("n_pixeis.txt", "a+");
-  //mete no ficheiro o numero de pixeis
-  fprintf(fptr,"%d\n",width*height);
-  fclose(fptr);
 
   return img;
 }

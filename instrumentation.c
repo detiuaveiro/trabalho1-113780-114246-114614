@@ -116,16 +116,6 @@ void InstrPrint(void) { ///
   double caltime = time / InstrCTU;
 
 
-
-  FILE *fptr;
-  fptr = fopen("n_acessos.txt", "a+");
-  //mete no ficheiro o additions
-  fprintf(fptr,"%lu\n",InstrCount[0]);
-
-
-  
-
-
   printf("#%14.15s\t%15.15s", "time", "caltime");
   for (int i = 0; i < NUMCOUNTERS; i++)
     if (InstrName[i] != NULL)
