@@ -73,8 +73,8 @@ test9: $(PROGS) setup
 	./imageTool test/original.pgm blur 7,7 save blur.pgm
 	cmp blur.pgm test/blur.pgm
 
-# test10: $(PROGS) setup
-# ./imageTool test/original.pgm test/crop.pgm sublocate 15,15 save sublocateResult.txt
+test10: $(PROGS) setup
+	./imageTool  test/crop.pgm test/original.pgm locate
 # cmp sublocateResult.txt test/sublocateExpected.txt
 
 	
