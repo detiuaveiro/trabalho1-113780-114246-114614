@@ -636,18 +636,19 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   int w2 = img2->width;
   for (y = 0; y < h1 - h2; y++) {
     for (x = 0; x < w1 - w2; x++) {
+      ADDITIONS += 1;
       if (ImageMatchSubImage(img1, x, y, img2)) {
         InstrCount[0] += 1;
         *px = x;
         *py = y;
+        InstrPrint(); 
         return 1;
       }
       
     }
   }
-  return 0;
   InstrPrint(); 
-
+  return 0;
 }
 
 /// Filtering
