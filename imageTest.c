@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
   ImageBlur(img1, 18,18);
   //ImageNegative(img2);
   //ImageThreshold(img2, 100);
-    InstrPrint(); // to print instrumentation
+  
   if (ImageSave(img1, argv[2]) == 0) {
     error(2, errno, "%s: %s", argv[2], ImageErrMsg());
   }

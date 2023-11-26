@@ -693,7 +693,7 @@ void ImageBlur(Image img, int dx, int dy) {
                       (x1 > 0 ? sumMatrix[y2 * w + (x1 - 1)] : 0) -
                       (y1 > 0 ? sumMatrix[(y1 - 1) * w + x2] : 0) +
                       (x1 > 0 && y1 > 0 ? sumMatrix[(y1 - 1) * w + (x1 - 1)] : 0);
-            ADDITIONS += 1;
+          ADDITIONS += 1;
           ImageSetPixel(img, x, y, (int)(sum / area + 0.5));
       }
   }
